@@ -131,7 +131,7 @@ const SCENES = [
 
   {
     id: 'confession',
-    sprite: 'Talking2',
+    sprite: 'Talking3',
     background: 'default',
     position: 'center',
     effects: ['soft_hearts'],
