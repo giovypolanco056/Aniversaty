@@ -673,7 +673,7 @@
 
 /* ── Tokens responsivos (se sobreescriben por breakpoint) ──── */
 :root {
-  --dialog-top:    24px;
+  --dialog-top:    52px;   /* debajo del botón saltar (~32px + margen) */
   --dialog-h:      140px;
   --char-gap:      8px;
   --char-top:      calc(var(--dialog-top) + var(--dialog-h) + var(--char-gap));
@@ -695,10 +695,10 @@
 ================================================================ */
 @media (max-width: 480px) {
   :root {
-    --dialog-top:  10px;
+    --dialog-top:  46px;
     --dialog-h:    108px;
     --char-gap:    4px;
-    --char-max-h:  min(74dvh, 420px);   /* ← más grande */
+    --char-max-h:  min(74dvh, 420px);
   }
 
   .vn-dialog-box {
@@ -741,10 +741,10 @@
 ================================================================ */
 @media (min-width: 481px) and (max-width: 640px) {
   :root {
-    --dialog-top:  14px;
+    --dialog-top:  50px;
     --dialog-h:    118px;
     --char-gap:    6px;
-    --char-max-h:  min(72dvh, 460px);   /* ← más grande */
+    --char-max-h:  min(72dvh, 460px);
   }
 
   .vn-dialog-box {
