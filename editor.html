@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>✏️ Editor de Escenas</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Reset & base ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --pink:      #f06292;
+      --pink-dark: #c2185b;
+      --purple:    #9c27b0;
+      --dark:      #1a0a2e;
+      --darker:    #0d0718;
+      --card:      rgba(255,255,255,0.06);
+      --border:    rgba(240,98,146,0.3);
+      --text:      #fff8f0;
+      --muted:     rgba(255,248,240,0.5);
+      --font-px:   'VT323', monospace;
+      --font-ui:   'M PLUS Rounded 1c', sans-serif;
+    }
+
+    html, body {
+      width: 100%; min-height: 100vh;
+      background: linear-gradient(135deg, #0d0718 0%, #1a0a2e 50%, #0d0718 100%);
+      color: var(--text);
+      font-family: var(--font-ui);
+    }
+
+    /* ── Layout ─────────────────────────────────────────── */
+    .editor-wrap { max-width: 960px; margin: 0 auto; padding: 24px 16px 80px; }
+
+    header {
+      text-align: center;
+      padding: 32px 0 28px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+    header h1 {
+      font-family: var(--font-px);
+      font-size: 2.4rem;
+      color: var(--pink);
+      text-shadow: 0 0 20px rgba(240,98,146,0.4);
+      letter-spacing: 0.06em;
+    }
+    header p { color: var(--muted); font-size: 0.88rem; margin-top: 6px; }
+
+    /* ── Tabs ────────────────────────────────────────────── */
+    .tabs {
+      display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;
+    }
+    .tab-btn {
+      font-family: var(--font-px); font-size: 1rem;
+      padding: 8px 20px; border-radius: 8px; cursor: pointer;
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--muted); transition: all 0.2s;
+      letter-spacing: 0.06em;
+    }
+    .tab-btn:hover { color: var(--text); border-color: var(--pink); }
+    .tab-btn.active {
+      background: rgba(194,24,91,0.25); border-color: var(--pink);
+      color: var(--pink);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Cards ───────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px; gap: 10px; flex-wrap: wrap;
+    }
+    .card-title {
+      font-family: var(--font-px); font-size: 1.25rem; color: var(--pink);
+      letter-spacing: 0.06em;
+    }
+    .card-index {
+      font-family: var(--font-px); font-size: 0.85rem;
+      color: var(--muted); background: rgba(240,98,146,0.1);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 2px 10px;
+    }
+
+    /* ── Form elements ───────────────────────────────────── */
+    label {
+      display: block; font-size: 0.78rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 5px; margin-top: 12px;
+    }
+    label:first-child { margin-top: 0; }
+
+    input[type="text"], select, textarea {
+      width: 100%; background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: var(--font-ui); font-size: 0.92rem;
+      padding: 9px 12px; transition: border-color 0.2s;
+      resize: vertical;
+    }
+    input[type="text"]:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--pink);
+      box-shadow: 0 0 0 2px rgba(240,98,146,0.15);
+    }
+    select option { background: #1a0a2e; }
+    textarea { min-height: 80px; line-height: 1.5; }
+
+    /* ── Líneas de diálogo ───────────────────────────────── */
+    .dialog-lines { display: flex; flex-direction: column; gap: 6px; }
+
+    .dialog-line-row {
+      display: flex; gap: 8px; align-items: center;
+    }
+    .dialog-line-row input {
+      flex: 1; margin: 0;
+    }
+    .btn-icon {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--muted); cursor: pointer; padding: 6px 10px;
+      font-size: 1rem; transition: all 0.2s; white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-icon:hover { border-color: var(--pink); color: var(--pink); }
+    .btn-icon.danger:hover { border-color: #e53935; color: #e53935; }
+
+    /* ── Botones principales ─────────────────────────────── */
+    .btn {
+      font-family: var(--font-px); font-size: 1rem; letter-spacing: 0.06em;
+      padding: 9px 22px; border-radius: 9px; cursor: pointer;
+      border: 1.5px solid; transition: all 0.2s;
+    }
+    .btn-primary {
+      background: rgba(194,24,91,0.3); border-color: var(--pink-dark);
+      color: var(--pink);
+    }
+    .btn-primary:hover { background: rgba(194,24,91,0.5); }
+
+    .btn-secondary {
+      background: rgba(156,39,176,0.2); border-color: var(--purple);
+      color: #ce93d8;
+    }
+    .btn-secondary:hover { background: rgba(156,39,176,0.35); }
+
+    .btn-success {
+      background: rgba(46,125,50,0.3); border-color: #4caf50;
+      color: #a5d6a7;
+    }
+    .btn-success:hover { background: rgba(46,125,50,0.5); }
+
+    .btn-danger {
+      background: rgba(183,28,28,0.2); border-color: #e53935;
+      color: #ef9a9a;
+    }
+    .btn-danger:hover { background: rgba(183,28,28,0.4); }
+
+    .actions-bar {
+      display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px;
+    }
+
+    /* ── Sprites grid ────────────────────────────────────── */
+    .sprites-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+      gap: 12px;
+    }
+    .sprite-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .sprite-preview {
+      width: 100%; height: 100px; object-fit: contain; border-radius: 6px;
+      background: rgba(255,255,255,0.03); image-rendering: pixelated;
+    }
+    .sprite-preview-placeholder {
+      width: 100%; height: 100px; border-radius: 6px;
+      background: rgba(240,98,146,0.06); border: 1px dashed var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem;
+    }
+    .sprite-key {
+      font-family: var(--font-px); font-size: 0.95rem; color: var(--pink);
+    }
+
+    /* ── Output ──────────────────────────────────────────── */
+    .output-box {
+      background: rgba(0,0,0,0.5); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px; font-family: monospace;
+      font-size: 0.8rem; color: #a5d6a7; white-space: pre-wrap;
+      max-height: 420px; overflow-y: auto; line-height: 1.5;
+    }
+
+    /* ── Badge info ──────────────────────────────────────── */
+    .info-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(240,98,146,0.1); border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 12px;
+      font-size: 0.8rem; color: var(--muted);
+    }
+
+    /* ── Toast ───────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: rgba(46,125,50,0.9); color: white;
+      font-family: var(--font-px); font-size: 1rem; letter-spacing: 0.05em;
+      padding: 10px 24px; border-radius: 10px;
+      border: 1px solid #4caf50;
+      opacity: 0; transition: opacity 0.3s; pointer-events: none;
+      z-index: 1000; white-space: nowrap;
+    }
+    #toast.visible { opacity: 1; }
+
+    /* ── Drag handle ─────────────────────────────────────── */
+    .drag-handle {
+      cursor: grab; color: var(--muted); font-size: 1rem; padding: 4px;
+      user-select: none;
+    }
+    .drag-handle:active { cursor: grabbing; }
+
+    /* ── Section dividers ────────────────────────────────── */
+    .section-title {
+      font-family: var(--font-px); font-size: 1.5rem;
+      color: var(--pink); margin: 24px 0 14px;
+      border-bottom: 1px solid var(--border); padding-bottom: 8px;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Timing inputs ───────────────────────────────────── */
+    .timing-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    }
+    @media (max-width: 540px) { .timing-grid { grid-template-columns: 1fr; } }
+
+    input[type="range"] {
+      width: 100%; accent-color: var(--pink); margin-top: 4px;
+    }
+    .range-value {
+      font-family: var(--font-px); color: var(--pink); font-size: 1rem;
+    }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+    .scene-collapsed .scene-body { display: none; }
+    .collapse-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+
+<div class="editor-wrap">
+
+  <header>
+    <h1>✏️ Editor Visual Novel</h1>
+    <p>Edita textos, sprites y tiempos. Al terminar, copia el código generado a <code>js/config.js</code></p>
+  </header>
+
+  <!-- ── Tabs ─────────────────────────────────────────── -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('scenes')">📖 Escenas y Diálogos</button>
+    <button class="tab-btn" onclick="switchTab('sprites')">🎨 Sprites</button>
+    <button class="tab-btn" onclick="switchTab('timing')">⏱️ Tiempos</button>
+    <button class="tab-btn" onclick="switchTab('export')">📋 Exportar</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       TAB: ESCENAS Y DIÁLOGOS
+  ═══════════════════════════════════════════════════ -->
+  <div id="tab-scenes" class="tab-panel active">
+
+    <div class="actions-bar" style="margin-bottom:18px">
+      <button class="btn btn-primary" onclick="addScene()">＋ Nueva escena</button>
+      <button class="btn btn-secondary" onclick="loadDefaults()">↺ Cargar defaults</button>
+      <span class="info-badge">💡 Arrastra las tarjetas para reordenar</span>
+    </div>
+
+    <div id="scenes-container"></div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       TAB: SPRITES
+  ═══════════════════════════════════════════════════ -->
+  <div id="tab-sprites" class="tab-panel">
+
+    <div class="actions-bar" style="margin-bottom:18px">
+      <button class="btn btn-primary" onclick="addSprite()">＋ Agregar sprite</button>
+    </div>
+
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:18px">
+      📁 Pon tus imágenes en <code>assets/sprites/</code> y escribe aquí el nombre del archivo.
+      Los sprites con ✅ tienen imagen configurada; los ❌ usan el placeholder automático.
+    </p>
+
+    <div id="sprites-container" class="sprites-grid"></div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       TAB: TIEMPOS
+  ═══════════════════════════════════════════════════ -->
+  <div id="tab-timing" class="tab-panel">
+
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:20px">
+      Ajusta los tiempos de toda la experiencia sin tocar código.
+    </p>
+
+    <div class="timing-grid" id="timing-container"></div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       TAB: EXPORTAR
+  ═══════════════════════════════════════════════════ -->
+  <div id="tab-export" class="tab-panel">
+
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
+      Copia este código y reemplaza el contenido de <code>js/config.js</code> con él.
+    </p>
+
+    <div class="actions-bar" style="margin-bottom:14px">
+      <button class="btn btn-success" onclick="generateAndCopy()">📋 Copiar al portapapeles</button>
+      <button class="btn btn-primary" onclick="generateCode()">🔄 Regenerar</button>
+      <button class="btn btn-secondary" onclick="downloadConfig()">⬇️ Descargar config.js</button>
+    </div>
+
+    <div id="output-box" class="output-box">— Haz click en "Regenerar" para ver el código —</div>
+
+  </div>
+
+</div>
+
+<!-- Toast de confirmación -->
+<div id="toast">✅ ¡Copiado!</div>
+
+<script>
+/* ================================================================
+   EDITOR STATE
+   Toda la data del editor vive aquí.
+================================================================ */
+
+// ── Sprites configurables ───────────────────────────────────────
+let SPRITES = {
+  Smiling:         "assets/sprites/Smiling_Me.png",
+  Thinking:        "assets/sprites/Thinking_Me.png",
+  Talking:         "assets/sprites/Talking_Me.png",
+  Crying:          "assets/sprites/Crying_Me.png",
+  GivingCard:      "assets/sprites/Card_Me.png",
+  LoveInEyes:      "assets/sprites/InLove_Me.png",
+  Kissing:         "assets/sprites/Kissing_Me.png",
+  Peeking:         "assets/sprites/Peeking_Me.png",
+  MissingSitDown:  "assets/sprites/Missing_Me.png",
+  Angry:           "assets/sprites/Angry_Me.png",
+  TalkingOnSide:   "assets/sprites/TalkingOnSide_Me.png",
+  Concerned:       "assets/sprites/Concerned_Me.png",
+  Singing:         "assets/sprites/Singing_Me.png",
+  MissingStanding: "assets/sprites/MissingStand_Me.png",
+  Talking2:        "assets/sprites/Talking2_Me.png",
+  Showing:         "assets/sprites/Showing_Me.png",
+};
+
+// Emoji de placeholder por sprite
+const SPRITE_EMOJIS = {
+  Smiling:'😊', Thinking:'🤔', Talking:'😮', Crying:'😢',
+  GivingCard:'💌', LoveInEyes:'😍', Kissing:'😘', Peeking:'👀',
+  MissingSitDown:'😔', Angry:'😤', TalkingOnSide:'😏', Concerned:'😟',
+  Singing:'🎵', MissingStanding:'🥺', Talking2:'💬', Showing:'🫶',
+};
+
+// ── Tiempos ──────────────────────────────────────────────────────
+let TIMING = {
+  initialDelay:            { value: 7000,  label: "Espera antes del glitch",       min: 1000, max: 20000, step: 500,  unit: "ms" },
+  typewriterSpeed:         { value: 42,    label: "Velocidad del texto",           min: 10,   max: 150,   step: 1,    unit: "ms/char" },
+  pauseAfterPunctuation:   { value: 320,   label: "Pausa en puntuación (. ! ?)",   min: 0,    max: 1000,  step: 10,   unit: "ms" },
+  glitchDuration:          { value: 400,   label: "Duración del glitch",           min: 100,  max: 1500,  step: 50,   unit: "ms" },
+  freezeDuration:          { value: 800,   label: "Freeze de pantalla",            min: 100,  max: 3000,  step: 100,  unit: "ms" },
+  characterEnterDelay:     { value: 600,   label: "Espera antes de que aparezca el personaje", min:100, max:3000, step:100, unit:"ms"},
+  musicFadeDuration:       { value: 1200,  label: "Fade de música",                min: 300,  max: 5000,  step: 100,  unit: "ms" },
+  spriteTransitionDuration:{ value: 400,   label: "Transición entre sprites",      min: 100,  max: 1500,  step: 50,   unit: "ms" },
+  pauseAfterLine:          { value: 500,   label: "Pausa al terminar una línea",   min: 0,    max: 2000,  step: 50,   unit: "ms" },
+};
+
+// ── Escenas ──────────────────────────────────────────────────────
+let SCENES = [];
+
+const SPRITE_KEYS = () => Object.keys(SPRITES);
+const BACKGROUNDS = ['default','cozy','night_sky','hearts_fill','glitch_start'];
+const POSITIONS   = ['center','left','right','peeking'];
+const EFFECTS_OPTS= ['','glitch_entry','soft_hearts','hearts_burst','warm_glow','stars_appear','pixel_kiss','fade_to_black'];
+
+function defaultScenes() {
+  return [
+    { id:'peek',         sprite:'Peeking',        bg:'glitch_start', pos:'peeking', effects:['glitch_entry'], musicShift:'',      isFinal:false,
+      lines:["Eh... hola.","Sí.","Tú.","La que escaneó este QR pensando que iba a encontrar exactamente lo mismo de siempre."] },
+    { id:'thinking',     sprite:'Thinking',       bg:'default',      pos:'center',  effects:[],               musicShift:'',      isFinal:false,
+      lines:["Seguramente te estarás preguntando qué es esto.","Y más importante...","¿Con qué se come?","La verdad es que yo también me lo pregunté mientras hacía esto."] },
+    { id:'introduction', sprite:'Smiling',        bg:'default',      pos:'center',  effects:[],               musicShift:'vnBGM', isFinal:false,
+      lines:["Permíteme presentarme.","Soy el moreno.","Bueno...","Una representación virtual del moreno.","Aunque debo admitir que el original es un poco más guapo.","Y también bastante más alto."] },
+    { id:'surprise',     sprite:'Talking',        bg:'default',      pos:'center',  effects:[],               musicShift:'',      isFinal:false,
+      lines:["Sé que esto es raro.","Pero quería sorprenderte.","Y después de descartar opciones completamente normales...","Como escribirte una carta.","O grabarte un video.","O aparecer en tu ventana vestido de BTS...","Decidí aparecer dentro de tu pantalla."] },
+    { id:'confession',   sprite:'Talking2',       bg:'default',      pos:'center',  effects:['soft_hearts'],  musicShift:'',      isFinal:false,
+      lines:["Porque hay algo que he descubierto desde que te conozco.","Y es que nunca encuentro suficientes maneras de decirte cuánto te amo."] },
+    { id:'conversations',sprite:'Showing',        bg:'default',      pos:'center',  effects:[],               musicShift:'',      isFinal:false,
+      lines:["Así que pensé...","¿Por qué no hacer lo que mejor sabemos hacer?","Hablar.","Durante demasiado tiempo.","Sobre demasiadas cosas.","Hasta las tres de la mañana."] },
+    { id:'letter',       sprite:'GivingCard',     bg:'cozy',         pos:'center',  effects:['warm_glow'],    musicShift:'',      isFinal:false,
+      lines:["Y como toda conversación importante merece una carta...","Escribí una para ti.","Bueno.","Técnicamente escribí cientos de páginas.","Pero vamos paso a paso."] },
+    { id:'love_eyes',    sprite:'LoveInEyes',     bg:'hearts_fill',  pos:'center',  effects:['hearts_burst'], musicShift:'',      isFinal:false,
+      lines:["Porque sinceramente...","Cada vez que te veo.","Me pasa algo parecido a esto.","Y lo peor es que después de todo este tiempo...","Sigue pasando exactamente igual."] },
+    { id:'empathy',      sprite:'Concerned',      bg:'cozy',         pos:'center',  effects:[],               musicShift:'',      isFinal:false,
+      lines:["Sé que hoy tuvo sus momentos.","Y sé que probablemente todavía tengas miedo.","O dudas.","O simplemente estés cansada.","Y no te culpo."] },
+    { id:'understanding',sprite:'MissingStanding',bg:'cozy',         pos:'center',  effects:[],               musicShift:'',      isFinal:false,
+      lines:["Porque si hay algo que he aprendido...","Es que amar a alguien también significa entender que a veces tiene miedo."] },
+    { id:'goodbyes',     sprite:'MissingSitDown', bg:'night_sky',    pos:'center',  effects:['stars_appear'], musicShift:'',      isFinal:false,
+      lines:["Y si soy completamente sincero...","Hay algo que nunca me acostumbro a sentir.","Las despedidas.","Porque no importa si es un Uber.","Un autobús.","Un carro.","Un avión.","O incluso un Allison Lee.","Cualquier cosa que me aleje de ti siempre se siente demasiado lejos."] },
+    { id:'hardest_part', sprite:'Crying',         bg:'night_sky',    pos:'center',  effects:[],               musicShift:'',      isFinal:false,
+      lines:["Porque la parte más difícil de cada encuentro...","Siempre ha sido el momento de partir."] },
+    { id:'gratitude',    sprite:'Smiling',        bg:'cozy',         pos:'center',  effects:['warm_glow'],    musicShift:'',      isFinal:false,
+      lines:["Pero también he descubierto algo.","Que incluso después de cada despedida...","Siempre termino agradeciendo."] },
+    { id:'divine',       sprite:'LoveInEyes',     bg:'hearts_fill',  pos:'center',  effects:['hearts_burst'], musicShift:'',      isFinal:false,
+      lines:["Porque entre todas las personas del mundo...","Dios decidió cruzar mi camino con el tuyo."] },
+    { id:'not_fair',     sprite:'Angry',          bg:'default',      pos:'center',  effects:[],               musicShift:'',      isFinal:false,
+      lines:["Aunque sigo pensando que no es justo.","No es justo que seas tan linda."] },
+    { id:'kiss',         sprite:'Kissing',        bg:'hearts_fill',  pos:'center',  effects:['hearts_burst','pixel_kiss'], musicShift:'', isFinal:false,
+      lines:["Mientras volvemos a vernos...","Aquí tienes un beso virtual."] },
+    { id:'finale',       sprite:'Showing',        bg:'cozy',         pos:'center',  effects:['fade_to_black'],musicShift:'',      isFinal:true,
+      lines:["Pero en realidad...","No aparecí aquí solo para hablar.","Vine a mostrarte algo."] },
+  ];
+}
+
+/* ================================================================
+   RENDER FUNCTIONS
+================================================================ */
+
+function renderScenes() {
+  const container = document.getElementById('scenes-container');
+  container.innerHTML = '';
+  SCENES.forEach((scene, i) => renderSceneCard(container, scene, i));
+}
+
+function renderSceneCard(container, scene, index) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.index = index;
+  card.draggable = true;
+
+  card.innerHTML = `
+    <div class="card-header">
+      <span class="drag-handle">⠿</span>
+      <span class="card-title">Escena ${index + 1}: ${scene.id}</span>
+      <span class="card-index">${scene.sprite || '—'}</span>
+      <div style="display:flex;gap:6px;margin-left:auto">
+        <button class="btn-icon" onclick="duplicateScene(${index})" title="Duplicar">⧉</button>
+        <button class="btn-icon danger" onclick="deleteScene(${index})" title="Eliminar">✕</button>
+      </div>
+    </div>
+    <div class="scene-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div>
+          <label>ID de la escena</label>
+          <input type="text" value="${scene.id}" oninput="updateScene(${index},'id',this.value)" placeholder="mi_escena"/>
+        </div>
+        <div>
+          <label>Sprite</label>
+          <select onchange="updateScene(${index},'sprite',this.value)">
+            ${SPRITE_KEYS().map(k=>`<option value="${k}" ${scene.sprite===k?'selected':''}>${k}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label>Posición</label>
+          <select onchange="updateScene(${index},'pos',this.value)">
+            ${POSITIONS.map(p=>`<option value="${p}" ${scene.pos===p?'selected':''}>${p}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:2px">
+        <div>
+          <label>Fondo</label>
+          <select onchange="updateScene(${index},'bg',this.value)">
+            ${BACKGROUNDS.map(b=>`<option value="${b}" ${scene.bg===b?'selected':''}>${b}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label>Cambio de música</label>
+          <select onchange="updateScene(${index},'musicShift',this.value)">
+            <option value="" ${!scene.musicShift?'selected':''}>— sin cambio —</option>
+            <option value="birthdayBGM" ${scene.musicShift==='birthdayBGM'?'selected':''}>birthdayBGM</option>
+            <option value="vnBGM" ${scene.musicShift==='vnBGM'?'selected':''}>vnBGM</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <label>Efectos al entrar</label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+          ${EFFECTS_OPTS.filter(e=>e).map(e => `
+            <label style="display:flex;align-items:center;gap:4px;margin:0;text-transform:none;letter-spacing:0;font-size:0.82rem;color:var(--text);cursor:pointer">
+              <input type="checkbox" value="${e}"
+                ${(scene.effects||[]).includes(e)?'checked':''}
+                onchange="toggleEffect(${index},'${e}',this.checked)"
+                style="accent-color:var(--pink);width:14px;height:14px"/>
+              ${e}
+            </label>
+          `).join('')}
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <label>¿Es la escena final? (activa fade to black)</label>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:4px;font-size:0.9rem;color:var(--text);text-transform:none;letter-spacing:0;cursor:pointer">
+          <input type="checkbox" ${scene.isFinal?'checked':''}
+            onchange="updateScene(${index},'isFinal',this.checked)"
+            style="accent-color:var(--pink);width:15px;height:15px"/>
+          Activar fade to black al terminar el diálogo
+        </label>
+      </div>
+
+      <div style="margin-top:14px">
+        <label>Líneas de diálogo <span style="color:var(--pink)">(una por campo — el usuario hace click para avanzar)</span></label>
+        <div class="dialog-lines" id="lines-${index}">
+          ${(scene.lines||[]).map((line,li)=>renderLineRow(index,li,line)).join('')}
+        </div>
+        <button class="btn-icon" style="margin-top:8px;padding:6px 14px"
+          onclick="addLine(${index})">＋ Agregar línea</button>
+      </div>
+    </div>
+  `;
+
+  // Drag & drop para reordenar
+  card.addEventListener('dragstart', onDragStart);
+  card.addEventListener('dragover',  onDragOver);
+  card.addEventListener('drop',      onDrop);
+  card.addEventListener('dragend',   onDragEnd);
+
+  container.appendChild(card);
+}
+
+function renderLineRow(sceneIndex, lineIndex, value) {
+  return `
+    <div class="dialog-line-row" data-line="${lineIndex}">
+      <span class="drag-handle" style="font-size:0.9rem">⠿</span>
+      <input type="text" value="${escapeHtml(value)}"
+        oninput="updateLine(${sceneIndex},${lineIndex},this.value)"
+        placeholder="Escribe una línea de diálogo..."/>
+      <button class="btn-icon danger" onclick="deleteLine(${sceneIndex},${lineIndex})" title="Eliminar línea">✕</button>
+    </div>
+  `;
+}
+
+function renderSprites() {
+  const container = document.getElementById('sprites-container');
+  container.innerHTML = '';
+  Object.entries(SPRITES).forEach(([key, src]) => {
+    const card = document.createElement('div');
+    card.className = 'sprite-card';
+    const emoji = SPRITE_EMOJIS[key] || '🙂';
+    const hasFile = src && src.length > 0;
+    card.innerHTML = `
+      <div class="sprite-preview-placeholder">${emoji}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="sprite-key">${key}</span>
+        <span style="font-size:0.9rem">${hasFile ? '✅' : '❌'}</span>
+      </div>
+      <div>
+        <label style="margin:0 0 3px">Nombre del archivo</label>
+        <input type="text" value="${escapeHtml(src)}"
+          oninput="SPRITES['${key}']=this.value"
+          placeholder="assets/sprites/archivo.png"/>
+      </div>
+      <button class="btn-icon danger" style="width:100%;text-align:center"
+        onclick="deleteSprite('${key}')">✕ Eliminar sprite</button>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function renderTiming() {
+  const container = document.getElementById('timing-container');
+  container.innerHTML = '';
+  Object.entries(TIMING).forEach(([key, cfg]) => {
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div style="margin-bottom:14px">
+        <label style="margin-bottom:4px">${cfg.label}</label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="range"
+            min="${cfg.min}" max="${cfg.max}" step="${cfg.step}" value="${cfg.value}"
+            oninput="TIMING['${key}'].value=+this.value; this.nextElementSibling.textContent=this.value+' ${cfg.unit}'"/>
+          <span class="range-value">${cfg.value} ${cfg.unit}</span>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+/* ================================================================
+   SCENE OPERATIONS
+================================================================ */
+
+function addScene() {
+  SCENES.push({
+    id: `escena_${SCENES.length + 1}`,
+    sprite: SPRITE_KEYS()[0] || 'Smiling',
+    bg: 'default', pos: 'center',
+    effects: [], musicShift: '', isFinal: false,
+    lines: ["Escribe tu diálogo aquí..."]
+  });
+  renderScenes();
+  // Scroll al final
+  document.getElementById('scenes-container').lastElementChild?.scrollIntoView({ behavior:'smooth' });
+}
+
+function duplicateScene(index) {
+  const copy = JSON.parse(JSON.stringify(SCENES[index]));
+  copy.id = copy.id + '_copia';
+  SCENES.splice(index + 1, 0, copy);
+  renderScenes();
+}
+
+function deleteScene(index) {
+  if (!confirm(`¿Eliminar la escena "${SCENES[index].id}"?`)) return;
+  SCENES.splice(index, 1);
+  renderScenes();
+}
+
+function updateScene(index, field, value) {
+  SCENES[index][field] = value;
+}
+
+function toggleEffect(sceneIndex, effect, checked) {
+  if (!SCENES[sceneIndex].effects) SCENES[sceneIndex].effects = [];
+  if (checked) {
+    if (!SCENES[sceneIndex].effects.includes(effect))
+      SCENES[sceneIndex].effects.push(effect);
+  } else {
+    SCENES[sceneIndex].effects = SCENES[sceneIndex].effects.filter(e => e !== effect);
+  }
+}
+
+/* ── Líneas ──────────────────────────────────────────────── */
+
+function addLine(sceneIndex) {
+  SCENES[sceneIndex].lines.push('');
+  const container = document.getElementById(`lines-${sceneIndex}`);
+  const li = SCENES[sceneIndex].lines.length - 1;
+  const row = document.createElement('div');
+  row.innerHTML = renderLineRow(sceneIndex, li, '');
+  container.appendChild(row.firstElementChild);
+  container.lastElementChild.querySelector('input').focus();
+}
+
+function updateLine(sceneIndex, lineIndex, value) {
+  SCENES[sceneIndex].lines[lineIndex] = value;
+}
+
+function deleteLine(sceneIndex, lineIndex) {
+  SCENES[sceneIndex].lines.splice(lineIndex, 1);
+  const container = document.getElementById(`lines-${sceneIndex}`);
+  container.innerHTML = SCENES[sceneIndex].lines
+    .map((l, li) => renderLineRow(sceneIndex, li, l)).join('');
+}
+
+/* ── Sprites ─────────────────────────────────────────────── */
+
+function addSprite() {
+  const key = prompt('Nombre de la clave del sprite (ej: MiExpresion):');
+  if (!key || !key.trim()) return;
+  const trimmed = key.trim().replace(/\s+/g,'_');
+  if (SPRITES[trimmed]) { alert('Ya existe ese sprite'); return; }
+  SPRITES[trimmed] = `assets/sprites/${trimmed}.png`;
+  renderSprites();
+}
+
+function deleteSprite(key) {
+  if (!confirm(`¿Eliminar el sprite "${key}"?`)) return;
+  delete SPRITES[key];
+  renderSprites();
+}
+
+/* ================================================================
+   DRAG & DROP (reordenar escenas)
+================================================================ */
+let dragSrc = null;
+
+function onDragStart(e) {
+  dragSrc = this;
+  e.dataTransfer.effectAllowed = 'move';
+  this.style.opacity = '0.4';
+}
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  return false;
+}
+function onDrop(e) {
+  e.stopPropagation();
+  if (dragSrc === this) return;
+  const fromIdx = +dragSrc.dataset.index;
+  const toIdx   = +this.dataset.index;
+  const moved   = SCENES.splice(fromIdx, 1)[0];
+  SCENES.splice(toIdx, 0, moved);
+  renderScenes();
+}
+function onDragEnd() {
+  this.style.opacity = '1';
+}
+
+/* ================================================================
+   CODE GENERATION
+================================================================ */
+
+function generateCode() {
+  // Sync all input values first (in case of direct typing)
+  const spriteSrc = Object.entries(SPRITES)
+    .map(([k, v]) => `  ${k}:${' '.repeat(Math.max(1, 18-k.length))}"${v}",`)
+    .join('\n');
+
+  const timingVals = Object.entries(TIMING)
+    .map(([k, cfg]) => `  ${k}:${' '.repeat(Math.max(1, 26-k.length))}${cfg.value},   // ${cfg.label} (${cfg.unit})`)
+    .join('\n');
+
+  const scenesCode = SCENES.map(s => {
+    const effects = s.effects && s.effects.length
+      ? `['${s.effects.join("', '")}']`
+      : '[]';
+    const lines = (s.lines || [])
+      .map(l => `      "${l.replace(/"/g, '\\"')}",`)
+      .join('\n');
+    const musicLine = s.musicShift ? `\n    musicShift: '${s.musicShift}',` : '\n    musicShift: null,';
+    const finalLine = s.isFinal ? '\n    isFinalScene: true,' : '';
+    return `  {
+    id: '${s.id}',
+    sprite: '${s.sprite}',
+    background: '${s.bg}',
+    position: '${s.pos}',
+    effects: ${effects},${musicLine}${finalLine}
+    dialog: [
+${lines}
+    ],
+  }`;
+  }).join(',\n\n');
+
+  const code = `/* ================================================================
+   CONFIG.JS  —  Generado por el Editor Visual Novel
+   Última edición: ${new Date().toLocaleString('es-DO')}
+================================================================ */
+
+const CHARACTER_SPRITES = {
+${spriteSrc}
+};
+
+const SCENE_BACKGROUNDS = {
+  default:      { type: 'gradient', gradient: 'linear-gradient(180deg, #1a0a2e 0%, #0d0718 100%)', particles: null },
+  cozy:         { type: 'gradient', gradient: 'linear-gradient(180deg, #2d1b4e 0%, #1a0e2e 50%, #0d0718 100%)', particles: 'stars', overlay: 'rgba(255, 160, 90, 0.06)' },
+  night_sky:    { type: 'gradient', gradient: 'linear-gradient(180deg, #050a1a 0%, #0a1628 40%, #1a0a2e 100%)', particles: 'stars', overlay: null },
+  hearts_fill:  { type: 'gradient', gradient: 'linear-gradient(180deg, #1a0a2e 0%, #2d0a1e 100%)', particles: 'hearts', overlay: null },
+  glitch_start: { type: 'gradient', gradient: 'linear-gradient(180deg, #0d0718 0%, #1a0a2e 100%)', particles: null, overlay: null },
+};
+
+const AUDIO_CONFIG = {
+  birthdayBGM:    { src: "assets/audio/birthday_bgm.mp3", loop: true, volume: 0.6 },
+  vnBGM:          { src: "assets/audio/vn_bgm.mp3",       loop: true, volume: 0.45 },
+  sfx:            { textSound: null, sceneChange: null, glitch: null, heartBeat: null },
+  useSyntheticSFX: true,
+};
+
+const TIMING_CONFIG = {
+${timingVals}
+  autoAdvance:            false,
+  autoAdvanceDelay:       3500,
+};
+
+const SCENES = [
+${scenesCode}
+];
+
+const EFFECTS_CONFIG = {
+  glitch_entry:   { type: 'glitch',    duration: 400 },
+  soft_hearts:    { type: 'particles', emitter: 'hearts',      count: 8,  speed: 'slow'   },
+  hearts_burst:   { type: 'particles', emitter: 'hearts',      count: 20, speed: 'medium' },
+  warm_glow:      { type: 'overlay',   color: 'rgba(255,160,80,0.07)', fade: 1500 },
+  stars_appear:   { type: 'particles', emitter: 'stars',       count: 25, speed: 'slow'   },
+  pixel_kiss:     { type: 'particles', emitter: 'kiss_hearts', count: 12, speed: 'medium' },
+  fade_to_black:  { type: 'fade',      duration: 3000 },
+};
+`;
+
+  document.getElementById('output-box').textContent = code;
+  return code;
+}
+
+function generateAndCopy() {
+  const code = generateCode();
+  navigator.clipboard.writeText(code).then(() => {
+    showToast('✅ ¡Copiado al portapapeles!');
+  }).catch(() => {
+    showToast('⚠️ Selecciona el texto manualmente');
+  });
+}
+
+function downloadConfig() {
+  const code = generateCode();
+  const blob = new Blob([code], { type: 'text/javascript' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'config.js';
+  a.click();
+  showToast('⬇️ Descargando config.js...');
+}
+
+/* ================================================================
+   UI HELPERS
+================================================================ */
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  if (tab === 'sprites') renderSprites();
+  if (tab === 'timing')  renderTiming();
+  if (tab === 'export')  generateCode();
+}
+
+function loadDefaults() {
+  if (SCENES.length > 0 && !confirm('¿Reemplazar todas las escenas con los valores por defecto?')) return;
+  SCENES = defaultScenes();
+  renderScenes();
+  showToast('↺ Escenas por defecto cargadas');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('visible');
+  setTimeout(() => t.classList.remove('visible'), 2200);
+}
+
+function escapeHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── Init ────────────────────────────────────────────────── */
+SCENES = defaultScenes();
+renderScenes();
+</script>
+</body>
+</html>

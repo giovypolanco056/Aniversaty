@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Página de Cumpleaños</title>
+
+  <!-- ============================================================
+       FUENTES - Sistema tipográfico de la experiencia
+       - VT323: fuente pixel-art para el texto de diálogo y efectos
+       - Noto Serif: elegante para títulos de la página original
+  ============================================================ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Serif:ital@0;1&family=M+PLUS+Rounded+1c:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Estilos de la página "original" de cumpleaños -->
+  <link rel="stylesheet" href="css/birthday-page.css" />
+
+  <!-- Estilos de la experiencia visual novel (se activan con JS) -->
+  <link rel="stylesheet" href="css/visual-novel.css" />
+</head>
+
+<body>
+
+  <!-- ============================================================
+       PÁGINA ORIGINAL DE CUMPLEAÑOS
+       Esta sección es lo que la usuaria verá primero.
+       Se verá completamente normal durante los primeros segundos.
+  ============================================================ -->
+  <div id="birthday-page" class="birthday-page">
+    <div class="birthday-content">
+      <div class="birthday-decoration top-decoration">
+        <span>🎀</span><span>✨</span><span>🌸</span><span>✨</span><span>🎀</span>
+      </div>
+      <h1 class="birthday-title">Feliz Cumpleaños</h1>
+      <p class="birthday-subtitle">Una página especial para ti</p>
+      <div class="birthday-hearts">
+        <span>💕</span><span>💫</span><span>💕</span>
+      </div>
+      <p class="birthday-message">
+        Cada año contigo es un regalo.<br/>
+        Hoy es tu día y quería que lo supieras.
+      </p>
+      <div class="birthday-decoration bottom-decoration">
+        <span>🌸</span><span>✨</span><span>🎀</span><span>✨</span><span>🌸</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       CAPA DE VISUAL NOVEL
+       Todo esto está oculto al inicio y se activa progresivamente.
+       Estructura:
+         - vn-overlay: overlay oscuro sobre la página original
+         - vn-background: fondo dinámico que cambia por escena
+         - vn-particles: contenedor de efectos de partículas
+         - vn-character: contenedor del personaje
+         - vn-glitch-layer: efecto de glitch sobre toda la pantalla
+         - vn-dialog-box: la caja de diálogo estilo visual novel
+         - vn-skip-btn: botón para saltar toda la secuencia
+  ============================================================ -->
+  <div id="vn-layer" class="vn-layer vn-hidden">
+
+    <!-- Overlay semitransparente sobre la página original -->
+    <div id="vn-overlay" class="vn-overlay"></div>
+
+    <!-- Fondo dinámico de la escena -->
+    <div id="vn-background" class="vn-background">
+      <div id="vn-bg-gradient" class="vn-bg-gradient"></div>
+      <canvas id="vn-bg-canvas" class="vn-bg-canvas"></canvas>
+    </div>
+
+    <!-- Sistema de partículas (corazones, estrellas, etc.) -->
+    <div id="vn-particles" class="vn-particles"></div>
+
+    <!-- Capa de efecto glitch -->
+    <div id="vn-glitch-layer" class="vn-glitch-layer vn-hidden"></div>
+
+    <!-- Personaje chibi/pixel-art -->
+    <div id="vn-character-container" class="vn-character-container">
+      <img
+        id="vn-character-sprite"
+        class="vn-character-sprite"
+        src=""
+        alt="Personaje"
+        draggable="false"
+      />
+    </div>
+
+    <!-- Caja de diálogo estilo visual novel -->
+    <div id="vn-dialog-box" class="vn-dialog-box vn-hidden">
+      <!-- Nombre del personaje (opcional) -->
+      <div id="vn-character-name" class="vn-character-name">
+        <span id="vn-name-text">el moreno</span>
+      </div>
+
+      <!-- Contenedor del texto de diálogo -->
+      <div id="vn-dialog-text-container" class="vn-dialog-text-container">
+        <p id="vn-dialog-text" class="vn-dialog-text"></p>
+      </div>
+
+      <!-- Indicador de "siguiente" (triángulo parpadeante) -->
+      <div id="vn-next-indicator" class="vn-next-indicator vn-hidden">▼</div>
+    </div>
+
+    <!-- Zona de tap invisible que cubre toda la pantalla (móvil/tablet) -->
+    <!-- Se activa solo cuando el VN está en marcha -->
+    <div id="vn-tap-zone" class="vn-tap-zone vn-hidden"></div>
+
+    <!-- Hint táctil: "toca para continuar" (solo móvil) -->
+    <div id="vn-tap-hint" class="vn-tap-hint vn-hidden">toca para continuar</div>
+
+    <!-- Botón para saltar la secuencia entera -->
+    <button id="vn-skip-btn" class="vn-skip-btn vn-hidden">
+      SALTAR ⏭
+    </button>
+
+    <!-- Pantalla de fade to black final -->
+    <div id="vn-fade-screen" class="vn-fade-screen vn-hidden"></div>
+
+  </div><!-- /vn-layer -->
+
+
+  <!-- ============================================================
+       SCRIPTS - Cargados en orden de dependencias
+  ============================================================ -->
+
+  <!-- 1. Configuración centralizada (sprites, diálogos, fondos, música) -->
+  <script src="js/config.js"></script>
+
+  <!-- 2. Motor de audio -->
+  <script src="js/audio.js"></script>
+
+  <!-- 3. Sistema de partículas y efectos visuales -->
+  <script src="js/effects.js"></script>
+
+  <!-- 4. Sistema de fondos dinámicos -->
+  <script src="js/backgrounds.js"></script>
+
+  <!-- 5. Motor de personaje (sprites y animaciones) -->
+  <script src="js/character.js"></script>
+
+  <!-- 6. Motor de diálogos (typewriter, avance de líneas) -->
+  <script src="js/dialog.js"></script>
+
+  <!-- 7. Controlador de escenas (orquesta todo) -->
+  <script src="js/scenes.js"></script>
+
+  <!-- 8. Punto de entrada principal -->
+  <script src="js/main.js"></script>
+
+</body>
+</html>

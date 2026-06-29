@@ -1,0 +1,123 @@
+/* ================================================================
+   BIRTHDAY-PAGE.CSS
+   Estilos de la página original de cumpleaños.
+   Esta es la página "inocente" que la usuaria ve primero.
+   Se ve completamente normal durante los primeros segundos.
+================================================================ */
+
+/* Reset básico */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 30%, #f3e5f5 60%, #fce4ec 100%);
+  font-family: 'Noto Serif', serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+/* ----------------------------------------------------------------
+   Contenedor principal de la página de cumpleaños
+---------------------------------------------------------------- */
+.birthday-page {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.birthday-content {
+  text-align: center;
+  padding: 2.5rem 3rem;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 24px;
+  box-shadow:
+    0 4px 32px rgba(233, 30, 99, 0.10),
+    0 1.5px 6px rgba(156, 39, 176, 0.06);
+  backdrop-filter: blur(8px);
+  max-width: 480px;
+  width: 90%;
+  animation: fadeInBirthday 1.2s ease forwards;
+}
+
+@keyframes fadeInBirthday {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ----------------------------------------------------------------
+   Título principal
+---------------------------------------------------------------- */
+.birthday-title {
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  font-style: italic;
+  color: #c2185b;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+  text-shadow: 0 2px 12px rgba(194, 24, 91, 0.14);
+}
+
+.birthday-subtitle {
+  font-size: 1rem;
+  color: #9c27b0;
+  opacity: 0.75;
+  letter-spacing: 0.08em;
+  margin-bottom: 1.4rem;
+}
+
+/* ----------------------------------------------------------------
+   Decoraciones y corazones
+---------------------------------------------------------------- */
+.birthday-decoration {
+  font-size: 1.4rem;
+  letter-spacing: 0.3em;
+  margin: 0.6rem 0;
+  display: block;
+}
+
+.birthday-hearts {
+  font-size: 1.8rem;
+  letter-spacing: 0.5em;
+  margin: 1rem 0;
+}
+
+/* ----------------------------------------------------------------
+   Mensaje central
+---------------------------------------------------------------- */
+.birthday-message {
+  font-size: 1.05rem;
+  color: #4a4a5a;
+  line-height: 1.8;
+  font-style: italic;
+  opacity: 0.88;
+}
+
+/* ----------------------------------------------------------------
+   Clase de desenfoque que se aplica cuando el VN se activa
+   El JS agrega esta clase al elemento .birthday-content
+---------------------------------------------------------------- */
+.birthday-content.vn-blur {
+  filter: blur(4px);
+  transition: filter 1.2s ease;
+}
+
+/* La página entera se desvanece y desaparece cuando arranca el VN */
+.birthday-page.vn-dim {
+  transition: opacity 1.5s ease;
+  opacity: 0;
+  pointer-events: none;
+}
