@@ -164,31 +164,30 @@
 ================================================================ */
 .vn-character-container {
   position: absolute;
+  /* Centrado en el espacio debajo del diálogo */
+  top: 160px;         /* empieza justo debajo de la caja de diálogo */
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   z-index: var(--z-character);
   display: flex;
-  align-items: flex-end;
+  align-items: center;   /* centrado vertical en el espacio disponible */
   justify-content: center;
-  /* La posición se controla dinámicamente desde JS */
   transition:
     left var(--transition-slow),
     right var(--transition-slow),
     transform var(--transition-slow),
-    bottom var(--transition-med);
+    top var(--transition-med);
 }
 
 .vn-character-sprite {
-  /* Altura máxima: la mitad de la pantalla aproximadamente */
-  max-height: min(55vh, 420px);
+  max-height: min(68vh, 500px);
   width: auto;
   object-fit: contain;
-  image-rendering: pixelated;        /* Mantiene el look pixel-art */
+  image-rendering: pixelated;
   image-rendering: crisp-edges;
   filter: drop-shadow(0 8px 32px rgba(240, 98, 146, 0.45));
 
-  /* Estado inicial: invisible y desplazado */
   opacity: 0;
   transform: translateX(0) translateY(40px);
   transition:
@@ -205,7 +204,7 @@
 
 /* Animación idle: flotación continua SIN salto al repetir */
 .vn-character-sprite.idle {
-  animation: spriteIdle 9s ease-in-out infinite;
+  animation: spriteIdle 4s ease-in-out infinite;
 }
 
 @keyframes spriteIdle {
@@ -309,8 +308,10 @@
 .vn-character-container.peeking {
   left: auto !important;
   right: -20px;
-  transform: none;
+  top: auto !important;
   bottom: 80px;
+  transform: none;
+  align-items: flex-end;
 }
 
 .vn-character-container.peeking .vn-character-sprite {
@@ -673,8 +674,14 @@
     padding: 14px 16px 22px;
   }
 
+  /* En móvil el diálogo es más compacto (~120px alto),
+     el personaje arranca justo debajo */
+  .vn-character-container {
+    top: 130px;
+  }
+
   .vn-character-sprite {
-    max-height: min(45vh, 300px);
+    max-height: min(62vh, 380px);
   }
 
   .vn-character-container.peeking .vn-character-sprite {
