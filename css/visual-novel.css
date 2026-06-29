@@ -164,14 +164,13 @@
 ================================================================ */
 .vn-character-container {
   position: absolute;
-  /* Centrado en el espacio debajo del diálogo */
-  top: 160px;         /* empieza justo debajo de la caja de diálogo */
+  top: var(--char-top);   /* calculado por CSS vars según breakpoint */
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   z-index: var(--z-character);
   display: flex;
-  align-items: center;   /* centrado vertical en el espacio disponible */
+  align-items: center;
   justify-content: center;
   transition:
     left var(--transition-slow),
@@ -181,7 +180,7 @@
 }
 
 .vn-character-sprite {
-  max-height: min(68vh, 500px);
+  max-height: var(--char-max-h);
   width: auto;
   object-fit: contain;
   image-rendering: pixelated;
@@ -661,49 +660,243 @@
 }
 
 /* ================================================================
-   12. MEDIA QUERIES
+   12. RESPONSIVE COMPLETO
+   Sistema de breakpoints basado en el tamaño real de la pantalla.
+
+   Estrategia:
+     - El diálogo tiene altura variable → usamos --dialog-h como
+       referencia para que el personaje arranque justo debajo.
+     - El personaje llena el espacio restante con max-height fluido.
+     - dvh (dynamic viewport height) evita el problema de la barra
+       del navegador en móvil que cambia al hacer scroll.
 ================================================================ */
 
-/* Pantallas pequeñas (móvil) */
-@media (max-width: 540px) {
+/* ── Tokens responsivos (se sobreescriben por breakpoint) ──── */
+:root {
+  --dialog-top:    24px;
+  --dialog-h:      140px;
+  --char-gap:      8px;
+  --char-top:      calc(var(--dialog-top) + var(--dialog-h) + var(--char-gap));
+  --char-max-h:    min(62vh, 480px);
+}
+
+/* ── Base: aplica el sistema de posición responsive ────────── */
+.vn-character-container {
+  top: var(--char-top);
+}
+
+.vn-character-sprite {
+  max-height: var(--char-max-h);
+}
+
+/* ================================================================
+   MÓVIL PEQUEÑO — hasta 480px
+   iPhone SE, Android compacto
+================================================================ */
+@media (max-width: 480px) {
+  :root {
+    --dialog-top:  10px;
+    --dialog-h:    108px;
+    --char-gap:    4px;
+    --char-max-h:  min(74dvh, 420px);   /* ← más grande */
+  }
+
+  .vn-dialog-box {
+    top: var(--dialog-top);
+    width: 96vw;
+  }
+
   .vn-dialog-text {
-    font-size: 1rem;
+    font-size: clamp(1rem, 4.5vw, 1.15rem);
+    line-height: 1.45;
   }
 
   .vn-dialog-text-container {
-    padding: 14px 16px 22px;
+    padding: 10px 13px 18px;
+    min-height: 65px;
   }
 
-  /* En móvil el diálogo es más compacto (~120px alto),
-     el personaje arranca justo debajo */
-  .vn-character-container {
-    top: 130px;
+  .vn-character-name {
+    font-size: 0.95rem;
+    padding: 3px 10px 3px;
+    bottom: -21px;
   }
 
-  .vn-character-sprite {
-    max-height: min(62vh, 380px);
+  .vn-skip-btn {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    top: 10px;
+    right: 10px;
   }
 
-  .vn-character-container.peeking .vn-character-sprite {
-    max-height: min(28vh, 180px);
+  .vn-tap-hint {
+    font-size: 0.75rem;
+    bottom: 10px;
   }
 }
 
-/* Pantallas grandes */
-@media (min-width: 1200px) {
+/* ================================================================
+   MÓVIL ESTÁNDAR — 481px a 640px
+   La mayoría de los teléfonos actuales
+================================================================ */
+@media (min-width: 481px) and (max-width: 640px) {
+  :root {
+    --dialog-top:  14px;
+    --dialog-h:    118px;
+    --char-gap:    6px;
+    --char-max-h:  min(72dvh, 460px);   /* ← más grande */
+  }
+
   .vn-dialog-box {
-    top: 40px;
-    bottom: auto;
+    top: var(--dialog-top);
+    width: 94vw;
   }
 
-  .vn-character-sprite {
-    max-height: 500px;
+  .vn-dialog-text {
+    font-size: clamp(1rem, 4vw, 1.2rem);
+  }
+
+  .vn-dialog-text-container {
+    padding: 12px 16px 20px;
+    min-height: 75px;
   }
 }
 
-/* Preferencia de movimiento reducido (accesibilidad) */
+/* ================================================================
+   TABLET PORTRAIT — 641px a 900px
+================================================================ */
+@media (min-width: 641px) and (max-width: 900px) {
+  :root {
+    --dialog-top:  20px;
+    --dialog-h:    132px;
+    --char-gap:    10px;
+    --char-max-h:  min(65vh, 480px);
+  }
+
+  .vn-dialog-box {
+    top: var(--dialog-top);
+    width: min(90vw, 600px);
+  }
+
+  .vn-dialog-text {
+    font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+  }
+
+  .vn-dialog-text-container {
+    padding: 16px 20px 24px;
+    min-height: 84px;
+  }
+}
+
+/* ================================================================
+   TABLET LANDSCAPE / DESKTOP PEQUEÑO — 901px a 1199px
+================================================================ */
+@media (min-width: 901px) and (max-width: 1199px) {
+  :root {
+    --dialog-top:  24px;
+    --dialog-h:    140px;
+    --char-gap:    12px;
+    --char-max-h:  min(58vh, 460px);
+  }
+
+  .vn-dialog-box {
+    top: var(--dialog-top);
+    width: min(88vw, 680px);
+  }
+
+  .vn-dialog-text {
+    font-size: clamp(1.15rem, 2vw, 1.45rem);
+  }
+}
+
+/* ================================================================
+   DESKTOP — 1200px+
+================================================================ */
+@media (min-width: 1200px) {
+  :root {
+    --dialog-top:  40px;
+    --dialog-h:    150px;
+    --char-gap:    14px;
+    --char-max-h:  min(55vh, 520px);
+  }
+
+  .vn-dialog-box {
+    top: var(--dialog-top);
+    bottom: auto;
+    width: min(85vw, 720px);
+  }
+
+  .vn-dialog-text {
+    font-size: 1.55rem;
+  }
+
+  .vn-dialog-text-container {
+    padding: 22px 28px 30px;
+    min-height: 96px;
+  }
+}
+
+/* ================================================================
+   LANDSCAPE MÓVIL — alto < 500px
+   Teléfono girado horizontalmente
+================================================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+  :root {
+    --dialog-top:  8px;
+    --dialog-h:    85px;
+    --char-gap:    4px;
+    --char-max-h:  min(76dvh, 280px);
+  }
+
+  /* Diálogo a la izquierda, personaje a la derecha */
+  .vn-dialog-box {
+    top: var(--dialog-top);
+    width: min(54vw, 460px);
+    left: 3vw;
+    transform: none;
+  }
+
+  .vn-dialog-box.visible {
+    transform: none;
+  }
+
+  .vn-character-container {
+    left: auto !important;
+    right: 3vw;
+    top: 8px;
+    bottom: 0;
+    transform: none;
+  }
+
+  .vn-dialog-text {
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+
+  .vn-dialog-text-container {
+    padding: 10px 14px 16px;
+    min-height: 52px;
+  }
+
+  .vn-skip-btn {
+    top: 6px;
+    right: 8px;
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+}
+
+/* ================================================================
+   ACCESIBILIDAD: movimiento reducido
+================================================================ */
 @media (prefers-reduced-motion: reduce) {
-  .vn-character-sprite.idle { animation: none; }
-  .vn-particle { animation-duration: 0.01ms !important; }
-  .vn-layer.glitching { animation: none; }
+  .vn-character-sprite.idle    { animation: none; }
+  .vn-particle                 { animation-duration: 0.01ms !important; }
+  .vn-layer.glitching          { animation: none; }
+  .vn-character-sprite.glitch-idle-1,
+  .vn-character-sprite.glitch-idle-2,
+  .vn-character-sprite.glitch-idle-3,
+  .vn-character-sprite.glitch-idle-4,
+  .vn-character-sprite.glitch-idle-5,
+  .vn-character-sprite.glitch-idle-6 { animation: none !important; }
 }
