@@ -192,30 +192,33 @@ const CharacterEngine = (() => {
       case 'center':
         container.style.left      = '50%';
         container.style.right     = 'auto';
-        container.style.bottom    = '0';
+        container.style.bottom    = '';   // deja que el CSS maneje top/bottom
+        container.style.top       = '';
         container.style.transform = 'translateX(-50%)';
         break;
 
       case 'left':
         container.style.left      = '8%';
         container.style.right     = 'auto';
-        container.style.bottom    = '0';
+        container.style.bottom    = '';
+        container.style.top       = '';
         container.style.transform = 'none';
-        spriteEl.style.transform  = 'scaleX(-1)'; // Mirror para mirar hacia dentro
+        spriteEl.style.transform  = 'scaleX(-1)';
         break;
 
       case 'right':
         container.style.left      = 'auto';
         container.style.right     = '8%';
-        container.style.bottom    = '0';
+        container.style.bottom    = '';
+        container.style.top       = '';
         container.style.transform = 'none';
         break;
 
       case 'peeking':
-        // Asomarse desde la esquina inferior derecha
         container.style.left      = 'auto';
         container.style.right     = '-10px';
-        container.style.bottom    = '140px';
+        container.style.bottom    = '80px';
+        container.style.top       = 'auto';
         container.style.transform = 'none';
         container.classList.add('peeking');
         break;
